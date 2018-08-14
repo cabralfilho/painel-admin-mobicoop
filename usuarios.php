@@ -12,6 +12,8 @@
     $_SESSION["subPagina"] = "listaUsuarios";
 
 	require_once("conecxao.php");
+    require_once("funcoes.php");
+
 	$utf8 = mysqli_query($conecta,"SET NAMES 'utf8'");
 ?>
 
@@ -65,72 +67,12 @@
     <!-- Corpo do Conteúdo -->
     <section class="content container-fluid ">
       <div class="col-md-12">
-		<!-- Formulario de Cadastro / Edição -->
-          <div class="box box-info">
-            <div class="box-header with-border">
-              <h3 class="box-title">Filtrar Usuários</h3>
-            </div>
-            <!-- /.box-header -->
-            <!-- form start -->
-            <form class="form-horizontal" method="post" action="usuarios.php">
-              <div class="box-body">
-				  <!-- Linha 01 -->
-				<div class="form-group">
-				  <label for="estadoPessoa" class="col-sm-1 control-label">Cooperativa:</label>
-                  <div class="col-sm-3">
-					<select class="form-control" style="width: 100%;" id="filtroCooperativas" name="filtroCooperativas">
-						<option value="0"> Selecione</option>
-					</select>
-                  </div>
-				  <label for="municipioPessoa" class="col-sm-1 control-label">Núcleo:</label>
-                  <div class="col-sm-3">
-					<select class="form-control" style="width: 100%;" id="filtroNucleos" name="filtroNucleos">
-						<option value="0"> Selecione</option>
-					</select>
-                  </div>
-				  <label for="municipioPessoa" class="col-sm-1 control-label">Cota:</label>
-                  <div class="col-sm-3">
-					<select class="form-control" style="width: 100%;" id="filtroCotas" name="filtroCotas">
-						<option value="0"> Selecione</option>
-					</select>
-                  </div>
-                </div>
-              </div>
-              <!-- /.box-body -->
-              <div class="box-footer">
-                <button type="submit" class="btn btn-info pull-right">Filtrar</button>
-              </div>
-              <!-- /.box-footer -->
-            </form>
-          </div>
+
           <!-- /.box -->
 		  <?php 
 		  
-		  	$pessoasSQL = "SELECT a.idPessoa,a.nome as nome,e.descricao as cooperativa,f.descricao as nucleo,g.descricao as cota,";
-            $pessoasSQL .= " a.preCadastrado, a.cooperado, a.consultor";
-		  	$pessoasSQL .= " FROM pessoas a";
-		  
-		  	$pessoasSQL .= " JOIN pessoasxcooperativas b ON b.IDPESSOA = a.IDPESSOA";
-			$pessoasSQL .= " JOIN pessoasxnucleos c ON c.IDPESSOA = a.IDPESSOA";
-		    $pessoasSQL .= " JOIN pessoasxcotas d ON d.IDPESSOA = a.IDPESSOA";
-		    
-		    $pessoasSQL .= " JOIN cooperativas e ON b.IDCOOPERATIVA = e.IDCOOPERATIVA";
-		    $pessoasSQL .= " JOIN nucleos f ON c.IDNUCLEO = f.IDNUCLEO";
-		  	$pessoasSQL .= " JOIN cotas g ON d.IDCOTA = g.IDCOTA";
-		  
-		  	if(isset($_POST["filtroCooperativas"]) && $_POST["filtroCooperativas"]>0){
-				$filtroCooperativa = $_POST["filtroCooperativas"];
-				$pessoasSQL .= " WHERE e.IDCOOPERATIVA = {$filtroCooperativa}";
-			}
-		  	if(isset($_POST["filtroNucleos"]) && $_POST["filtroNucleos"]>0){
-				$filtroNucleo = $_POST["filtroNucleos"];
-				$pessoasSQL .= " AND f.IDNUCLEO = {$filtroNucleo}";
-			}
-		  	if(isset($_POST["filtroCotas"]) && $_POST["filtroCotas"]>0){
-				$filtroCota = $_POST["filtroCotas"];
-				$pessoasSQL .= " AND g.IDCOTA = {$filtroCota}";
-			}
-          
+		  	$pessoasSQL = "SELECT a.idPessoa,a.nome, a.cpf, a.email, a.telefone";
+		  	$pessoasSQL .= " FROM pessoas a";          
 		  	$pessoas = mysqli_query($conecta,$pessoasSQL);
 		  ?>
 
@@ -145,32 +87,20 @@
                 <tr>
                   <th>ID</th>
                   <th>Nome</th>
-                  <th>Tipo Usuário</th>
-                  <th>Cooperativa</th>
-                  <th>Núcleo</th>
-                  <th>Cota</th>
+                  <th>CPF</th>
+                  <th>Email</th>
+                  <th>Telefone</th>
 				  <th>Ação</th>
                 </tr>
                 </thead>
                 <tbody>
-					<?php while($listaPessoas = mysqli_fetch_assoc($pessoas)){
-    
-                        if($listaPessoas["cooperado"] == 1){
-                            $tipoPessoa = "Cooperado";
-                        }else if($listaPessoas["preCadastrado"] == 1){ 
-                            $tipoPessoa = "Pré-Cadastrado";
-                        }else{
-                            $tipoPessoa = "Consultor";
-                        }
-    
-                    ?>
+					<?php while($listaPessoas = mysqli_fetch_assoc($pessoas)){ ?>
                 <tr>
-                  <td><?php echo $listaPessoas["idPessoa"]?></td>
-                  <td><?php echo $listaPessoas["nome"]?></td>
-                  <td><?php echo $tipoPessoa?></td>
-                  <td><?php echo $listaPessoas["cooperativa"]?></td>
-                  <td><?php echo $listaPessoas["nucleo"]?></td>
-                  <td><?php echo $listaPessoas["cota"]?></td>
+                  <td><?php echo $listaPessoas["idPessoa"];?></td>
+                  <td><?php echo $listaPessoas["nome"];?></td>
+                  <td><?php echo mask($listaPessoas["cpf"],'###.###.###-##')?></td>
+                  <td><?php echo $listaPessoas["email"];?></td>
+                  <td><?php echo mask($listaPessoas["telefone"],'(##) #.####-####');?></td>
 				  <td><a href="editar.php?idPessoa=<?php echo $listaPessoas["idPessoa"]?>"><button class="btn btn-flat btn-info pull-right">Perfil</button></a></td>
                 </tr>
 					<?php } ?>
@@ -214,100 +144,6 @@
 			   }
 		});	
 	});
-</script>
-<!-- Script dos filtros -->
-<script>
-	function getCooperativas() {
-		$.getJSON("https://www.mobicoop.com.br/scripts/getCooperativas.php", function (data) {
-			var lista = data;
-			//limpando o conteudo do Select
-			$("#filtroCooperativas").empty();
-			$("#filtroCooperativas").append("<option value='0'>Selecione</option>");
-			//percorre resultado montando o Select
-			if (lista.length > 0) {
-				for (var linha = 0; linha < lista.length; linha++) {
-					var registro = lista[linha];
-					if(registro.idCooperativa != <?php if(isset($filtroCooperativa)){echo $filtroCooperativa;}else{echo "0";} ?>){
-						$("#filtroCooperativas").append(
-							"<option value='"+ registro.idCooperativa +"'>"
-							+ registro.descricao +"</option>"
-						);
-					}else{
-						$("#filtroCooperativas").append(
-							"<option  value='"+ registro.idCooperativa +"' selected >"+ registro.descricao +"</option>"
-						);
-						$("#filtroCooperativas").val(registro.idCooperativa);
-					}
-				}
-			}		
-		});
-	}
-	function getNucleos(idCooperativa) {
-		$.getJSON("https://mobicoop.com.br/scripts/getNucleos.php?cooperativa="+idCooperativa, function (data) {
-			var lista = data;
-			//limpando o conteudo do Select
-			$("#filtroNucleos").empty();
-			$("#filtroNucleos").append("<option value='0'>Selecione</option>");
-			//percorre resultado montando o Select
-			if (lista.length > 0) {
-				for (var linha = 0; linha < lista.length; linha++) {
-					var registro = lista[linha];
-					if(registro.idNucleo != <?php if(isset($filtroNucleo)){echo $filtroNucleo;}else{echo "0";} ?>){
-						$("#filtroNucleos").append(
-							"<option value='"+ registro.idNucleo +"'>"+ registro.descricao +"</option>"
-						);
-					}else{
-						$("#filtroNucleos").append(
-							"<option  value='"+ registro.idNucleo +"' selected >"+ registro.descricao +"</option>"
-						);
-						$("#filtroNucleos").val(registro.idNucleo);
-					}
-				}
-			}		
-		});
-}
-	function getCotas(idNucleo) {
-		$.getJSON("https://mobicoop.com.br/scripts/getCotas.php?nucleo="+idNucleo, function (data) {
-			var lista = data;
-			//limpando o conteudo do Select
-			$("#filtroCotas").empty();
-			$("#filtroCotas").append("<option value='0'>Selecione</option>");
-			//percorre resultado montando o Select
-			if (lista.length > 0) {
-				for (var linha = 0; linha < lista.length; linha++) {
-					var registro = lista[linha];
-					if(registro.idCota != <?php if(isset($filtroCota)){echo $filtroCota;}else{echo "0";} ?>){
-						$("#filtroCotas").append(
-							"<option value='"+ registro.idCota +"'>"+ registro.descricao +"</option>"
-						);
-					}else{
-						$("#filtroCotas").append(
-							"<option  value='"+ registro.idCota +"' selected >"+ registro.descricao +"</option>"
-						);
-						$("#filtroCotas").val(registro.idCota);
-					}
-				}
-			}		
-		});
-}
-$(document).ready(function () {
-	getCooperativas();
-	
-	if(<?php if(isset($filtroCooperativa)){echo $filtroCooperativa;}else{echo "0";} ?> > 0){
-		getNucleos(<?php if(isset($filtroCooperativa)){echo $filtroCooperativa;}else{echo "0";} ?>);
-	}
-	if(<?php if(isset($filtroNucleo)){echo $filtroNucleo;}else{echo "0";} ?> > 0){
-		getCotas(<?php if(isset($filtroNucleo)){echo $filtroNucleo;}else{echo "0";} ?>);   
-	}
-	
-});
-$("#filtroCooperativas").change(function(){ 
-    getNucleos($("#filtroCooperativas").val());
-	$("#filtroCotas").empty();
-});
-$("#filtroNucleos").change(function(){ 
-	getCotas($("#filtroNucleos").val());
-});  
 </script>
 </body>
 </html>
